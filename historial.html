@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial - Querido Café</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .olive-theme { color: #556b2f; }
+        .bg-olive { background-color: #556b2f; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #556b2f33; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen pb-20">
+  <header class="bg-white border-b border-gray-200 p-6 shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="admin.html" class="text-gray-400 hover:text-olive transition text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-xl font-black text-gray-800 uppercase tracking-tighter">Control de Ventas</h1>
+        </div>
+       
+    </div>
+</header>
+
+    <main class="max-w-4xl mx-auto p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Filtrar por Día</label>
+                <input type="date" id="filtro-dia" class="w-full bg-gray-50 border-0 rounded-xl p-3 font-bold olive-theme outline-none">
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Filtrar por Mes</label>
+                <input type="month" id="filtro-mes" class="w-full bg-gray-50 border-0 rounded-xl p-3 font-bold olive-theme outline-none">
+            </div>
+        </div>
+
+        <div class="bg-olive rounded-[2.5rem] p-8 text-white shadow-xl shadow-olive/20 flex justify-between items-center relative overflow-hidden">
+            <div class="z-10">
+                <p id="label-reporte" class="text-xs font-black uppercase opacity-80 tracking-widest mb-2">Resumen de Ventas</p>
+                <h2 id="total-monto" class="text-5xl font-black italic tracking-tighter">Q0.00</h2>
+                <p id="total-ordenes" class="text-[10px] font-bold mt-2 opacity-80 uppercase tracking-widest">0 ÓRDENES REGISTRADAS</p>
+            </div>
+            <i class="fas fa-wallet text-8xl absolute -right-4 -bottom-4 opacity-10"></i>
+        </div>
+
+        <div id="lista-ventas" class="space-y-4">
+            <p class="text-center py-20 text-gray-300 font-bold uppercase text-[10px] tracking-widest animate-pulse">Cargando registros...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFQf7qAKNVASklSu7uVAhlYPSAfU68jz4",
+            authDomain: "querido-cafe-pos.firebaseapp.com",
+            projectId: "querido-cafe-pos",
+            storageBucket: "querido-cafe-pos.firebasestorage.app",
+            messagingSenderId: "999034420558",
+            appId: "1:999034420558:web:d412f10273ee9643e3721f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const diaInput = document.getElementById('filtro-dia');
+        const mesInput = document.getElementById('filtro-mes');
+
+        // --- LÓGICA DE FECHA GUATEMALA AL CARGAR ---
+        const ahora = new Date();
+        const guateTime = new Date(ahora.toLocaleString("en-US", {timeZone: "America/Guatemala"}));
+        const anio = guateTime.getFullYear();
+        const mes = guateTime.getMonth() + 1;
+        const dia = guateTime.getDate();
+        const hoyStr = `${anio}-${mes < 10 ? '0'+mes : mes}-${dia < 10 ? '0'+dia : dia}`;
+        
+        diaInput.value = hoyStr;
+
+        function cargarHistorial(filtro, valor) {
+            const campo = filtro === 'dia' ? 'diaStr' : 'mesStr';
+            
+            // Consultamos solo órdenes con estado "completado" para el reporte de caja
+            const q = query(
+                collection(db, "ordenes"), 
+                where("estado", "==", "completado"), 
+                where(campo, "==", valor)
+            );
+
+            onSnapshot(q, (snap) => {
+                const container = document.getElementById('lista-ventas');
+                const label = document.getElementById('label-reporte');
+                const totalMonto = document.getElementById('total-monto');
+                const totalOrdenes = document.getElementById('total-ordenes');
+                
+                let suma = 0; 
+                container.innerHTML = '';
+
+                label.innerText = filtro === 'dia' ? `Ventas del Día (${valor})` : `Ventas del Mes (${valor})`;
+
+                if(snap.empty) {
+                    container.innerHTML = `
+                        <div class="text-center py-20 text-gray-300">
+                            <i class="fas fa-folder-open text-4xl mb-4"></i>
+                            <p class="font-bold uppercase text-[10px] tracking-widest">No hay ventas registradas para este periodo</p>
+                        </div>`;
+                    totalMonto.innerText = "Q0.00";
+                    totalOrdenes.innerText = "0 ÓRDENES REGISTRADAS";
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const v = d.data(); 
+                    suma += v.total;
+                    
+                    container.innerHTML += `
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center transition-all hover:shadow-md">
+                            <div>
+                                <p class="text-[10px] font-black text-gray-400 uppercase mb-1">${v.cliente}</p>
+                                <p class="font-bold text-gray-700 text-sm">${v.items.length} productos despachados</p>
+                            </div>
+                            <p class="font-black olive-theme text-xl tracking-tighter italic">Q${v.total.toFixed(2)}</p>
+                        </div>`;
+                });
+
+                totalMonto.innerText = `Q${suma.toFixed(2)}`;
+                totalOrdenes.innerText = `${snap.size} ÓRDENES REGISTRADAS`;
+            });
+        }
+
+        // Eventos de cambio en los filtros
+        diaInput.onchange = () => { 
+            mesInput.value = ''; 
+            cargarHistorial('dia', diaInput.value); 
+        };
+
+        mesInput.onchange = () => { 
+            diaInput.value = ''; 
+            const partes = mesInput.value.split('-'); // Formato "YYYY-MM"
+            const valorMes = `${partes[0]}-${parseInt(partes[1])}`; // Formato "YYYY-M" para coincidir con index.html
+            cargarHistorial('mes', valorMes); 
+        };
+
+        // Carga inicial con la fecha de Guatemala
+        cargarHistorial('dia', hoyStr);
+    </script>
+</body>
+</html>

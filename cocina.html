@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * https://*.googleapis.com; img-src * data: blob: https://firebasestorage.googleapis.com; style-src * 'unsafe-inline';">
+    <title>Cocina - Querido Café</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .olive-theme { color: #556b2f; }
+        .bg-olive { background-color: #556b2f; }
+        @keyframes pulse-new {
+            0% { transform: scale(1); border-color: #556b2f; }
+            50% { transform: scale(1.02); border-color: #ff9a16; }
+            100% { transform: scale(1); border-color: #556b2f; }
+        }
+        .new-order { animation: pulse-new 2s infinite; border-width: 3px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #556b2f33; border-radius: 10px; }
+        
+        /* Estilos para Toasts */
+        @keyframes bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-bounce-in { animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col font-sans overflow-hidden">
+
+    <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] space-y-3 pointer-events-none"></div>
+
+   <header class="bg-white border-b-4 border-olive p-6 flex flex-col items-center shadow-md relative">
+    <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-100 p-4 rounded-2xl text-gray-400 hover:text-olive transition shadow-sm group flex flex-col items-center justify-center min-w-[64px]">
+        <i class="fas fa-arrow-left text-xl"></i>
+        <span class="text-[8px] font-black uppercase mt-1 hidden md:block">Regresar</span>
+    </a>
+
+    <img src="logo.png" alt="Logo Querido Café" class="h-24 md:h-32 w-auto object-contain mb-2">
+    <div class="text-center">
+        <h1 class="text-2xl font-black olive-theme tracking-widest uppercase">Monitor de Cocina</h1>
+        <p id="order-count" class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Esperando órdenes...</p>
+    </div>
+</header>
+
+    <main class="flex-1 p-6 overflow-x-auto">
+        <div id="pedidos-container" class="flex gap-6 h-full items-start">
+            <div class="text-center w-full mt-20 text-gray-300">
+                <i class="fas fa-receipt text-6xl mb-4 animate-bounce"></i>
+                <p class="text-xl font-bold italic">No hay pedidos pendientes por ahora</p>
+            </div>
+        </div>
+    </main>
+
+    <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFQf7qAKNVASklSu7uVAhlYPSAfU68jz4",
+            authDomain: "querido-cafe-pos.firebaseapp.com",
+            projectId: "querido-cafe-pos",
+            storageBucket: "querido-cafe-pos.firebasestorage.app",
+            messagingSenderId: "999034420558",
+            appId: "1:999034420558:web:d412f10273ee9643e3721f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let lastCount = 0;
+
+        // Sistema de Toasts
+        window.showToast = (mensaje, tipo = 'success') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const color = tipo === 'success' ? 'bg-olive' : 'bg-orange-500';
+            const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            toast.className = `${color} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-auto`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span class="text-xs font-black uppercase tracking-widest">${mensaje}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        };
+
+        const q = query(
+            collection(db, "ordenes"), 
+            where("estado", "==", "pendiente"),
+            orderBy("fecha", "asc")
+        );
+
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('pedidos-container');
+            const countEl = document.getElementById('order-count');
+            container.innerHTML = '';
+            
+            countEl.innerText = `${snapshot.size} PEDIDOS PENDIENTES`;
+
+            if (snapshot.size > lastCount) {
+                document.getElementById('notif-sound').play().catch(e => console.log("Audio bloqueado"));
+                window.showToast("¡Nueva orden recibida!");
+            }
+            lastCount = snapshot.size;
+
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="text-center w-full mt-20 text-gray-300">
+                        <i class="fas fa-coffee text-6xl mb-4"></i>
+                        <p class="text-xl font-bold italic">Todo listo en cocina</p>
+                    </div>`;
+                return;
+            }
+
+            snapshot.forEach((pedidoDoc) => {
+                const pedido = pedidoDoc.data();
+                const id = pedidoDoc.id;
+                const tiempoCrea = pedido.fecha?.toDate() || new Date();
+                const minutos = Math.floor((new Date() - tiempoCrea) / 60000);
+
+                const card = document.createElement('div');
+                card.className = `min-w-[320px] max-w-[320px] bg-white rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border-2 border-gray-100 ${minutos > 10 ? 'new-order' : ''}`;
+                
+                // --- LÓGICA DE AGRUPACIÓN ---
+                const itemsAgrupados = {};
+                pedido.items.forEach(item => {
+                    const cant = item.cantidad || 1; // Si no tiene cantidad, asumimos 1
+                    if (itemsAgrupados[item.name]) {
+                        itemsAgrupados[item.name].cantidad += cant;
+                    } else {
+                        itemsAgrupados[item.name] = { ...item, cantidad: cant };
+                    }
+                });
+
+                // --- GENERAR HTML AGRUPADO ---
+                let itemsHTML = '';
+                Object.values(itemsAgrupados).forEach(item => {
+                    itemsHTML += `
+                        <div class="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
+                            <div class="relative">
+                                <img src="${item.img}" class="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-50" onerror="this.src='https://via.placeholder.com/100?text=Café'">
+                                <span class="absolute -top-2 -right-2 bg-olive text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                                    ${item.cantidad}
+                                </span>
+                            </div>
+                            <p class="font-black text-gray-700 text-sm uppercase leading-tight flex-1">
+                                ${item.name}
+                            </p>
+                        </div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="p-6 ${minutos > 10 ? 'bg-orange-500' : 'bg-olive'} text-white shadow-lg">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[10px] font-black uppercase opacity-80 tracking-widest mb-1">Cliente / Mesa</p>
+                                <h3 class="text-2xl font-black leading-none uppercase tracking-tighter">${pedido.cliente}</h3>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md px-3 py-2 rounded-2xl text-center">
+                                <p class="text-[9px] font-black uppercase leading-none mb-1">Tiempo</p>
+                                <span class="text-sm font-black">${minutos}m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-6 overflow-y-auto bg-white custom-scrollbar">
+                        ${itemsHTML}
+                    </div>
+                    <div class="p-6 bg-gray-50 mt-auto border-t border-gray-100">
+                        <button onclick="window.completarOrden('${id}')" class="w-full bg-olive text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-olive/20 hover:brightness-110 active:scale-95 transition-all uppercase tracking-[0.2em] text-xs">
+                            <i class="fas fa-check-circle mr-2 text-lg"></i> Despachar
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        });
+
+        // Cambia "completado" por "listo-para-cobrar"
+window.completarOrden = async (id) => {
+    try {
+        const ordenRef = doc(db, "ordenes", id);
+        await updateDoc(ordenRef, {
+            estado: "listo-para-cobrar", // Este es el estado que el POS reconoce
+            fechaListo: new Date()
+        });
+        // Opcional: puedes agregar un toast o mensaje de éxito aquí
+    } catch (e) {
+        alert("Error al actualizar");
+    }
+};
+    </script>
+</body>
+</html>
