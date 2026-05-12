@@ -65,6 +65,12 @@
     <span class="text-[7px] font-black uppercase mt-1 hidden md:block">Pedidos Listos</span>
 </button>
     </div>
+
+    <button onclick="window.toggleCart()" class="md:hidden bg-white border border-gray-100 p-3 rounded-xl relative shadow-sm text-olive active:scale-95 transition-all">
+    <i class="fas fa-shopping-basket text-lg"></i>
+    <span id="cart-count-mobile" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] px-2 py-0.5 rounded-full border-2 border-white font-bold">0</span>
+</button>
+
 </header>
 
     <main class="flex-1 flex overflow-hidden relative bg-gray-50/50">
