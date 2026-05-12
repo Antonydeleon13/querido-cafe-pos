@@ -327,18 +327,29 @@
     };
 
     // --- CARGA DE MENÚ ---
-    onSnapshot(query(collection(db, "productos"), orderBy("categoria")), (snapshot) => {
-        menuData = {};
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            const cat = p.categoria || "General";
-            if (!menuData[cat]) menuData[cat] = [];
-            menuData[cat].push(p);
-        });
-        window.renderSidebar(); 
-        const categorias = Object.keys(menuData);
-        if (categorias.length > 0) window.renderSubmenu(categorias[0]);
+onSnapshot(query(collection(db, "productos"), orderBy("categoria")), (snapshot) => {
+    menuData = {};
+    snapshot.forEach(doc => {
+        const p = doc.data();
+        const cat = p.categoria || "General";
+        if (!menuData[cat]) menuData[cat] = [];
+        menuData[cat].push(p);
     });
+
+    // --- ORDENAR POR PRECIO (MÁS BARATO PRIMERO) ---
+    Object.keys(menuData).forEach(cat => {
+        menuData[cat].sort((a, b) => {
+            // Convertimos a número por seguridad para que el orden sea exacto
+            const precioA = parseFloat(a.precio) || 0;
+            const precioB = parseFloat(b.precio) || 0;
+            return precioA - precioB;
+        });
+    });
+
+    window.renderSidebar(); 
+    const categorias = Object.keys(menuData);
+    if (categorias.length > 0) window.renderSubmenu(categorias[0]);
+});
 
     window.renderSidebar = () => {
         const sidebar = document.getElementById('sidebar-categorias');
