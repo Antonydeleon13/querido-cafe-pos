@@ -7,6 +7,9 @@
     <title>Querido Café - POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
     <style>
         .olive-theme { color: #556b2f; }
         .bg-olive { background-color: #556b2f; }
@@ -37,85 +40,116 @@
 
     <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] space-y-3 pointer-events-none"></div>
 
-    <header class="bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center shadow-sm z-20">
-        <div class="flex items-center gap-4">
-            <div class="bg-gray-50 p-2 rounded-2xl shadow-inner">
-                <img src="logo.png" alt="Logo Querido Café" class="h-16 md:h-20 w-auto object-contain">
+    <header class="bg-white border-b border-gray-200 p-3 md:px-6 flex justify-between items-center shadow-sm z-20">
+        <div class="flex items-center gap-3">
+            <div class="bg-gray-50 p-1.5 rounded-xl shadow-inner">
+                <img src="logo.png" alt="Logo Querido Café" class="h-10 md:h-14 w-auto object-contain">
             </div>
             <div>
-                <h1 class="text-xl md:text-2xl font-black olive-theme tracking-tighter uppercase leading-none">Querido Café</h1>
-                <p class="text-[10px] text-gray-400 font-black tracking-[0.2em] uppercase mt-1">Punto de Venta</p>
+                <h1 class="text-lg md:text-xl font-black olive-theme tracking-tighter uppercase leading-none">Querido Café</h1>
+                <p class="text-[8px] text-gray-400 font-black tracking-[0.2em] uppercase mt-0.5">POS</p>
             </div>
         </div>
-       <div class="flex gap-3">
-    <a href="cocina.html" class="bg-gray-100 p-4 rounded-2xl text-gray-400 hover:text-olive transition shadow-sm group flex flex-col items-center justify-center min-w-[64px]">
-        <i class="fas fa-utensils text-xl"></i>
-        <span class="text-[8px] font-black uppercase mt-1 hidden md:block">Cocina</span>
-    </a>
+        <div class="flex gap-2">
+            <a href="cocina.html" class="bg-gray-100 p-3 rounded-xl text-gray-400 hover:text-olive transition min-w-[48px] flex flex-col items-center">
+                <i class="fas fa-utensils text-lg"></i>
+                <span class="text-[7px] font-black uppercase mt-1 hidden md:block">Cocina</span>
+            </a>
 
-    <button onclick="window.verPedidosListos()" class="bg-orange-500 text-white p-4 rounded-2xl hover:brightness-110 transition shadow-lg shadow-orange-200 group flex flex-col items-center justify-center min-w-[64px] relative">
-        <i class="fas fa-hand-holding-usd text-xl"></i>
-        <span id="count-listos" class="absolute -top-1 -right-1 bg-white text-orange-500 text-[10px] px-1.5 rounded-full font-black border-2 border-orange-500 hidden">0</span>
-        <span class="text-[8px] font-black uppercase mt-1 hidden md:block">Por Cobrar</span>
-    </button>
+            <button onclick="window.verPedidosListos()" class="bg-orange-500 text-white p-3 rounded-xl hover:brightness-110 shadow-lg shadow-orange-200 min-w-[48px] flex flex-col items-center relative">
+                <i class="fas fa-hand-holding-usd text-lg"></i>
+                <span id="count-listos" class="absolute -top-1 -right-1 bg-white text-orange-500 text-[9px] px-1.5 rounded-full font-black border border-orange-500 hidden">0</span>
+                <span class="text-[7px] font-black uppercase mt-1 hidden md:block">Por Cobrar</span>
+            </button>
 
-    <button onclick="window.toggleCart()" class="md:hidden bg-white border border-gray-100 p-4 rounded-2xl relative shadow-sm text-olive">
-        <i class="fas fa-shopping-basket text-xl"></i>
-        <span id="cart-count-mobile" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white font-bold">0</span>
-    </button>
-</div>
+            <button onclick="window.toggleCart()" class="md:hidden bg-white border border-gray-100 p-3 rounded-xl relative shadow-sm text-olive">
+                <i class="fas fa-shopping-basket text-lg"></i>
+                <span id="cart-count-mobile" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] px-2 py-0.5 rounded-full border-2 border-white font-bold">0</span>
+            </button>
+        </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden relative">
-        <section id="menu-container" class="flex-1 p-4 md:p-8 overflow-y-auto pb-24 space-y-12">
+        <section id="menu-container" class="flex-1 p-4 md:p-6 overflow-y-auto pb-24 space-y-8">
             <p class="text-center text-gray-300 animate-pulse mt-10 text-xs font-bold uppercase tracking-widest">Cargando menú...</p>
         </section>
 
-        <aside id="cart-sidebar" class="cart-sidebar w-full md:w-[400px] bg-white border-l border-gray-200 flex flex-col shadow-2xl">
-            <div class="p-8 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="text-2xl font-black text-gray-800 tracking-tighter">Tu Orden</h2>
+        <aside id="cart-sidebar" class="cart-sidebar w-full md:w-[380px] bg-white border-l border-gray-200 flex flex-col shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-xl font-black text-gray-800 tracking-tighter uppercase">Tu Orden</h2>
                 <button onclick="window.toggleCart()" class="md:hidden text-gray-300 text-3xl">&times;</button>
             </div>
             
-            <div class="px-8 py-6">
-                <input id="order-meta" type="text" placeholder="Mesa # / Nombre Cliente" class="w-full bg-gray-50 border-0 rounded-2xl p-5 text-sm font-black outline-none focus:ring-2 focus:ring-olive/10 transition-all text-center">
+            <div class="px-6 py-4">
+                <input id="order-meta" type="text" placeholder="Mesa # / Nombre Cliente" class="w-full bg-gray-50 border-0 rounded-2xl p-4 text-xs font-black outline-none focus:ring-2 focus:ring-olive/10 transition-all text-center uppercase">
             </div>
 
-            <div id="order-list" class="flex-1 overflow-y-auto px-8 space-y-4"></div>
+            <div id="order-list" class="flex-1 overflow-y-auto px-6 space-y-3"></div>
 
-            <div class="p-8 bg-white border-t border-gray-100 space-y-4">
-                <div class="flex justify-between items-end mb-4 px-2">
-                    <span class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Total Orden</span>
-                    <span id="order-total" class="text-4xl font-black olive-theme italic leading-none tracking-tighter">Q0.00</span>
+            <div class="p-6 bg-white border-t border-gray-100 space-y-4">
+                <div class="flex justify-between items-end mb-2 px-1">
+                    <span class="text-gray-400 font-black uppercase text-[9px] tracking-widest">Total Orden</span>
+                    <span id="order-total" class="text-3xl font-black olive-theme italic leading-none tracking-tighter">Q0.00</span>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <button id="btn-pendiente" class="bg-gray-50 olive-theme font-black py-6 rounded-[2rem] flex flex-col items-center hover:bg-gray-100 transition active:scale-95">
-                        <i class="fas fa-utensils mb-2 text-xl"></i>
-                        <span class="text-[9px] tracking-widest uppercase">A Cocina</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-pendiente" class="bg-gray-50 olive-theme font-black py-5 rounded-2xl flex flex-col items-center hover:bg-gray-100 transition active:scale-95">
+                        <i class="fas fa-utensils mb-1 text-lg"></i>
+                        <span class="text-[8px] tracking-widest uppercase">A Cocina</span>
                     </button>
-                  <button id="btn-cobrar" class="bg-olive text-white font-black py-6 rounded-[2rem] shadow-xl shadow-olive/30 flex flex-col items-center hover:brightness-110 transition active:scale-95">
-    <i class="fas fa-check-circle mb-2 text-xl"></i>
-    <span class="text-[9px] tracking-widest uppercase">Cobrado</span>
-</button>
+                    <button id="btn-cobrar" class="bg-olive text-white font-black py-5 rounded-2xl shadow-lg shadow-olive/20 flex flex-col items-center hover:brightness-110 transition active:scale-95">
+                        <i class="fas fa-check-circle mb-1 text-lg"></i>
+                        <span class="text-[8px] tracking-widest uppercase">Cobrar</span>
+                    </button>
                 </div>
             </div>
         </aside>
+
+        <div id="modal-cobro-detalle" class="fixed inset-0 bg-black/60 z-[120] hidden flex items-center justify-center p-4 backdrop-blur-md">
+            <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-bounce-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-black text-gray-800 uppercase tracking-tighter">Detalle de Cobro</h3>
+                        <p class="text-[9px] text-gray-400 font-black tracking-widest uppercase mt-0.5" id="meta-cliente-modal"></p>
+                    </div>
+                    <button onclick="document.getElementById('modal-cobro-detalle').classList.add('hidden')" class="text-gray-300 hover:text-gray-500 text-3xl transition">&times;</button>
+                </div>
+
+                <p class="text-[8px] font-black text-gray-400 uppercase mb-3 ml-1 tracking-widest">Toca los artículos que va a pagar:</p>
+                <div class="space-y-2 max-h-60 overflow-y-auto mb-6 pr-2" id="items-seleccion-cobro">
+                    </div>
+
+                <div class="bg-gray-50 p-6 rounded-[2rem] border border-gray-100 mb-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total a recibir</p>
+                        <p class="text-3xl font-black olive-theme italic" id="total-seleccion-modal">Q0.00</p>
+                    </div>
+                    <i class="fas fa-receipt text-3xl text-gray-200"></i>
+                </div>
+
+                <button id="confirmar-pago-final" class="w-full bg-olive text-white font-black py-5 rounded-2xl shadow-xl shadow-olive/20 uppercase tracking-[0.2em] text-[10px] hover:brightness-110 transition">
+                    Generar Recibo y Finalizar
+                </button>
+            </div>
+        </div>
+
     </main>
 
     <div id="modal-listos" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl animate-bounce-in">
             <div class="p-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
                 <h3 class="font-black uppercase tracking-tighter text-gray-800">Órdenes Listas</h3>
-                <button onclick="window.verPedidosListos()" class="text-gray-400 text-2xl">&times;</button>
+                <button onclick="window.verPedidosListos()" class="text-gray-400 text-2xl hover:text-gray-600">&times;</button>
             </div>
             <div id="lista-pedidos-listos" class="p-6 max-h-[60vh] overflow-y-auto space-y-3"></div>
         </div>
     </div>
 
-    <script type="module">
+ <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where, doc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // IMPORTACIÓN PARA EL LINK DEL RECIBO
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAFQf7qAKNVASklSu7uVAhlYPSAfU68jz4",
@@ -128,7 +162,136 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    
+    // VARIABLES GLOBALES
     let order = [];
+    let itemsParaCobrar = [];
+    let isProcessing = false; 
+    let datosTempVenta = null; 
+
+    // --- FUNCIÓN PARA GENERAR RECIBO Y WHATSAPP ---
+    
+    window.procesarReciboYWhatsApp = (cliente, items, total) => {
+        datosTempVenta = { cliente, items, total };
+        document.getElementById('modal-whatsapp').classList.remove('hidden');
+    };
+
+    window.cerrarModalWS = () => {
+        document.getElementById('modal-whatsapp').classList.add('hidden');
+        if (datosTempVenta) {
+            ejecutarGeneracionFinal(null); 
+        }
+    };
+
+    document.getElementById('btn-confirmar-ws').onclick = () => {
+        const telefono = document.getElementById('input-telefono-ws').value;
+        document.getElementById('modal-whatsapp').classList.add('hidden');
+        ejecutarGeneracionFinal(telefono);
+    };
+
+    // --- FUNCIÓN PARA GENERAR RECIBO Y WHATSAPP ---
+// (Asegúrate de que 'storage' esté definido arriba como ya lo tienes)
+
+const ejecutarGeneracionFinal = async (telefono) => {
+    if (!datosTempVenta) return;
+    
+    const { cliente, items, total } = datosTempVenta;
+    const { jsPDF } = window.jspdf;
+    const docPDF = new jsPDF({ unit: 'mm', format: [80, 200] });
+    const fecha = new Date().toLocaleString("es-GT");
+
+    // 1. Cargamos el logo y armamos el diseño
+    const cargarLogoYGenerar = () => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = 'logo.png';
+            img.onload = function() {
+                docPDF.addImage(img, 'PNG', 25, 5, 30, 30);
+                docPDF.setTextColor(85, 107, 47);
+                docPDF.setFont("helvetica", "bold").setFontSize(16);
+                docPDF.text("QUERIDO CAFÉ", 40, 42, { align: "center" });
+                docPDF.setTextColor(100, 100, 100);
+                docPDF.setFontSize(8).setFont("helvetica", "normal");
+                docPDF.text("CHIMALTENANGO, GUATEMALA", 40, 47, { align: "center" });
+                
+                docPDF.setTextColor(0, 0, 0);
+                docPDF.text(`------------------------------------------`, 40, 53, { align: "center" });
+                docPDF.setFont("helvetica", "bold").setFontSize(10);
+                docPDF.text(`CLIENTE: ${cliente.toUpperCase()}`, 5, 60);
+                docPDF.setFont("helvetica", "normal").setFontSize(8);
+                docPDF.text(`FECHA: ${fecha}`, 5, 65);
+                docPDF.text(`------------------------------------------`, 40, 70, { align: "center" });
+
+                docPDF.setFont("helvetica", "bold");
+                docPDF.text("CANT", 5, 76);
+                docPDF.text("DESCRIPCIÓN", 15, 76);
+                docPDF.text("TOTAL", 65, 76);
+                docPDF.text(`------------------------------------------`, 40, 79, { align: "center" });
+
+                docPDF.setFont("helvetica", "normal");
+                let y = 85;
+                items.forEach(item => {
+                    const sub = (item.price * item.cantidad).toFixed(2);
+                    docPDF.text(`${item.cantidad}`, 5, y);
+                    docPDF.text(`${item.name.substring(0, 22)}`, 15, y);
+                    docPDF.text(`Q${sub}`, 65, y);
+                    y += 6;
+                });
+
+                docPDF.text(`------------------------------------------`, 40, y + 2, { align: "center" });
+                docPDF.setFontSize(14).setFont("helvetica", "bold");
+                docPDF.text(`TOTAL: Q${total.toFixed(2)}`, 40, y + 10, { align: "center" });
+
+                docPDF.setFontSize(8).setFont("helvetica", "italic");
+                docPDF.text("¡Gracias por tu compra!", 40, y + 18, { align: "center" });
+                resolve();
+            };
+            img.onerror = () => {
+                docPDF.setFont("helvetica", "bold").setFontSize(16).text("QUERIDO CAFÉ", 40, 20, { align: "center" });
+                resolve();
+            };
+        });
+    };
+
+    await cargarLogoYGenerar();
+    docPDF.save(`Ticket_${cliente}.pdf`);
+
+    // 2. Lógica de envío (Mejorada para evitar bloqueos)
+    if (telefono && telefono.length > 7 && telefono !== "502") {
+        window.showToast("Subiendo recibo...", "success");
+        
+        try {
+            const pdfBlob = docPDF.output('blob');
+            const storageRef = ref(storage, `recibos/${Date.now()}.pdf`);
+            
+            await uploadBytes(storageRef, pdfBlob, { contentType: 'application/pdf' });
+            const downloadURL = await getDownloadURL(storageRef);
+            
+            const msg = encodeURIComponent(`*QUERIDO CAFÉ* ☕\n\n¡Hola ${cliente}! Aquí tienes tu recibo:\n${downloadURL}`);
+            
+            // EL TRUCO: Creamos un enlace invisible y le hacemos clic programáticamente
+            const urlWhatsApp = `https://wa.me/${telefono}?text=${msg}`;
+            
+            // Intentamos abrirlo. Si el navegador lo bloquea, el toast te avisará.
+            const win = window.open(urlWhatsApp, '_blank');
+            if (!win) {
+                // Si 'window.open' devuelve null, es que fue bloqueado
+                window.showToast("⚠️ Habilita los pop-ups en tu navegador", "error");
+                // Plan B: Crear un botón temporal para que el usuario le dé clic
+                const btnPlanB = document.createElement('a');
+                btnPlanB.href = urlWhatsApp;
+                btnPlanB.target = '_blank';
+                btnPlanB.click();
+            }
+
+        } catch (e) {
+            console.error("Fallo en Firebase:", e);
+            window.showToast("Error al subir archivo", "error");
+        }
+    }
+    datosTempVenta = null; 
+};
 
     // --- SISTEMA DE TOASTS ---
     window.showToast = (mensaje, tipo = 'success') => {
@@ -136,7 +299,7 @@
         const toast = document.createElement('div');
         const color = tipo === 'success' ? 'bg-olive' : 'bg-orange-500';
         const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-        toast.className = `${color} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-auto`;
+        toast.className = `${color} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-auto mb-2`;
         toast.innerHTML = `<i class="fas ${icon}"></i> <span class="text-xs font-black uppercase tracking-widest">${mensaje}</span>`;
         container.appendChild(toast);
         setTimeout(() => {
@@ -166,7 +329,7 @@
         }
     });
 
-    // --- LÓGICA PEDIDOS LISTOS (DE COCINA A CAJA) ---
+    // --- LÓGICA PEDIDOS LISTOS ---
     onSnapshot(query(collection(db, "ordenes"), where("estado", "==", "listo-para-cobrar")), (snap) => {
         const btnCount = document.getElementById('count-listos');
         const container = document.getElementById('lista-pedidos-listos');
@@ -176,7 +339,7 @@
         snap.forEach(d => {
             const p = d.data();
             const div = document.createElement('div');
-            div.className = "bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-orange-50 transition";
+            div.className = "bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-orange-50 transition mb-2";
             div.onclick = async () => {
                 order = p.items; 
                 document.getElementById('order-meta').value = p.cliente;
@@ -192,7 +355,6 @@
 
     window.verPedidosListos = () => document.getElementById('modal-listos').classList.toggle('hidden');
     
-    // Lógica de agregar con suma de cantidades
     window.addToOrder = (name, price, img) => { 
         const itemExistente = order.find(item => item.name === name);
         if (itemExistente) {
@@ -205,9 +367,29 @@
         updateUI(); 
     };
 
-    window.removeItem = (index) => { 
-        order.splice(index, 1); 
-        updateUI(); 
+    window.removeItem = async (index) => { 
+        if (isProcessing) return;
+        isProcessing = true;
+        const itemEliminado = order[index];
+        const cliente = document.getElementById('order-meta').value || "Mesa General";
+        try {
+            const ahora = new Date();
+            const guateTime = new Date(ahora.toLocaleString("en-US", {timeZone: "America/Guatemala"}));
+            await addDoc(collection(db, "ordenes"), {
+                cliente: cliente,
+                items: [itemEliminado],
+                total: itemEliminado.price * itemEliminado.cantidad,
+                estado: "listo-para-cobrar",
+                fecha: guateTime
+            });
+            window.showToast("Devuelto a Por Cobrar", "error");
+            order.splice(index, 1); 
+            updateUI(); 
+        } catch (e) {
+            window.showToast("Error al mover item", "error");
+        } finally {
+            setTimeout(() => { isProcessing = false; }, 600);
+        }
     };
 
     window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('active');
@@ -218,20 +400,16 @@
         const badge = document.getElementById('cart-count-mobile');
         list.innerHTML = ''; 
         let total = 0;
-
         order.forEach((item, index) => {
             const cant = item.cantidad || 1;
             const subtotal = item.price * cant;
             total += subtotal;
-
             list.innerHTML += `
-                <div class="item-row flex items-center justify-between bg-gray-50 p-4 rounded-3xl border border-gray-100 shadow-sm">
+                <div class="item-row flex items-center justify-between bg-gray-50 p-4 rounded-3xl border border-gray-100 shadow-sm mb-2">
                     <div class="flex items-center gap-4">
                         <div class="relative">
                             <img src="${item.img}" class="w-12 h-12 rounded-xl object-cover">
-                            <span class="absolute -top-2 -right-2 bg-olive text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
-                                ${cant}
-                            </span>
+                            <span class="absolute -top-2 -right-2 bg-olive text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">${cant}</span>
                         </div>
                         <div>
                             <p class="font-black text-[11px] text-gray-800 uppercase leading-none">${item.name}</p>
@@ -253,33 +431,190 @@
         try {
             const ahora = new Date();
             const guateTime = new Date(ahora.toLocaleString("en-US", {timeZone: "America/Guatemala"}));
-            const diaStr = guateTime.toISOString().split('T')[0];
-            const mesStr = `${guateTime.getFullYear()}-${guateTime.getMonth() + 1}`;
-            
             const totalVenta = order.reduce((acc, item) => acc + (item.price * (item.cantidad || 1)), 0);
-
             await addDoc(collection(db, "ordenes"), {
-                cliente, 
-                items: order, 
-                total: totalVenta, 
-                estado, 
-                fecha: guateTime, 
-                diaStr, 
-                mesStr
+                cliente, items: order, total: totalVenta, estado, fecha: guateTime, 
+                diaStr: guateTime.toISOString().split('T')[0], 
+                mesStr: `${guateTime.getFullYear()}-${guateTime.getMonth() + 1}`
             });
-            window.showToast(estado === 'pendiente' ? "¡A cocina! ✨" : "¡Venta registrada! ✅");
+            window.showToast(estado === 'pendiente' ? "¡Pedido Anotado!" : "¡Venta registrada! ✅");
             order = []; 
             updateUI(); 
             document.getElementById('order-meta').value = '';
             if(window.innerWidth < 768) window.toggleCart();
-        } catch (e) { 
-            console.error(e);
-            window.showToast("Error de conexión", "error"); 
+        } catch (e) { window.showToast("Error de conexión", "error"); }
+    };
+
+    window.prepararCobro = () => {
+        const cliente = document.getElementById('order-meta').value;
+        if (order.length === 0 || !cliente) return window.showToast("Falta cliente o productos", "error");
+        const container = document.getElementById('items-seleccion-cobro');
+        document.getElementById('meta-cliente-modal').innerText = `Mesa: ${cliente}`;
+        container.innerHTML = '';
+        itemsParaCobrar = order.map((item, index) => ({ ...item, indexOriginal: index, cantCobro: item.cantidad }));
+        itemsParaCobrar.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-4 rounded-2xl border-2 border-gray-100 mb-2";
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black uppercase text-gray-700">${item.name}</span>
+                    <span class="text-[10px] font-black olive-theme">Q${item.price.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <button onclick="window.modCant(${index}, -1)" class="w-8 h-8 bg-white rounded shadow-sm flex items-center justify-center"><i class="fas fa-minus text-[8px] text-gray-400"></i></button>
+                        <span id="mc-${index}" class="text-xs font-black">${item.cantCobro}</span>
+                        <button onclick="window.modCant(${index}, 1)" class="w-8 h-8 bg-white rounded shadow-sm flex items-center justify-center"><i class="fas fa-plus text-[8px] text-gray-400"></i></button>
+                    </div>
+                    <p id="ms-${index}" class="text-[10px] font-black">Q${(item.price * item.cantCobro).toFixed(2)}</p>
+                </div>`;
+            container.appendChild(div);
+        });
+        actTotalMod();
+        document.getElementById('modal-cobro-detalle').classList.remove('hidden');
+    };
+
+    window.modCant = (idx, delta) => {
+        const i = itemsParaCobrar[idx];
+        const n = i.cantCobro + delta;
+        if (n >= 0 && n <= i.cantidad) {
+            i.cantCobro = n;
+            document.getElementById(`mc-${idx}`).innerText = n;
+            document.getElementById(`ms-${idx}`).innerText = `Q${(i.price * n).toFixed(2)}`;
+            actTotalMod();
         }
     };
 
+    function actTotalMod() {
+        const t = itemsParaCobrar.reduce((acc, i) => acc + (i.price * i.cantCobro), 0);
+        document.getElementById('total-seleccion-modal').innerText = `Q${t.toFixed(2)}`;
+    }
+
+    document.getElementById('confirmar-pago-final').onclick = async () => {
+        const p = itemsParaCobrar.filter(i => i.cantCobro > 0);
+        if (p.length === 0) return window.showToast("Nada seleccionado", "error");
+        try {
+            const cliente = document.getElementById('order-meta').value;
+            const ahora = new Date();
+            const guateTime = new Date(ahora.toLocaleString("en-US", {timeZone: "America/Guatemala"}));
+            const totalV = p.reduce((acc, i) => acc + (i.price * i.cantCobro), 0);
+            const itemsVendidos = p.map(i => ({ ...i, cantidad: i.cantCobro }));
+            await addDoc(collection(db, "ordenes"), {
+                cliente, items: itemsVendidos, total: totalV, estado: 'completado', fecha: guateTime,
+                diaStr: guateTime.toISOString().split('T')[0], mesStr: `${guateTime.getFullYear()}-${guateTime.getMonth() + 1}`
+            });
+            window.procesarReciboYWhatsApp(cliente, itemsVendidos, totalV);
+            p.forEach(x => { order[x.indexOriginal].cantidad -= x.cantCobro; });
+            order = order.filter(i => i.cantidad > 0);
+            updateUI();
+            document.getElementById('modal-cobro-detalle').classList.add('hidden');
+            window.showToast("Pago registrado ✅");
+            if (order.length === 0) document.getElementById('order-meta').value = '';
+        } catch (e) { window.showToast("Error", "error"); }
+    };
+
     document.getElementById('btn-pendiente').onclick = () => window.saveOrder('pendiente');
-    document.getElementById('btn-cobrar').onclick = () => window.saveOrder('completado');
+    document.getElementById('btn-cobrar').onclick = () => window.prepararCobro();
+
+
+    // Función para abrir el modal de selección
+window.preguntarDestinoRecibo = () => {
+    if (carrito.length === 0) {
+        window.showToast("El carrito está vacío", "error");
+        return;
+    }
+    // Preparamos los datos de la venta antes de preguntar
+    const total = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
+    datosTempVenta = {
+        cliente: document.getElementById('cliente-nombre').value || "Consumidor Final",
+        items: [...carrito],
+        total: total
+    };
+    
+    document.getElementById('modal-opcion-recibo').classList.remove('hidden');
+};
+
+// Función para procesar lo que elijas
+window.procesarSeleccionRecibo = async (opcion) => {
+    document.getElementById('modal-opcion-recibo').classList.add('hidden');
+    
+    if (opcion === 'whatsapp') {
+        // Abre el modal que ya tenías para pedir el teléfono
+        abrirModalWS(); 
+    } else if (opcion === 'local') {
+        // Solo genera el PDF con el logo y lo descarga, luego limpia
+        await ejecutarGeneracionFinal(null); 
+        finalizarProcesoVenta();
+    } else {
+        // No hace nada de PDF, solo limpia la venta
+        finalizarProcesoVenta();
+    }
+};
+
+// Función para limpiar todo después de vender
+function finalizarProcesoVenta() {
+    carrito = [];x
+    actualizarCarrito();
+    document.getElementById('cliente-nombre').value = '';
+    window.showToast("Venta completada con éxito", "success");
+    // Si tienes el modal del carrito abierto, ciérralo
+    cerrarCarrito(); 
+}
+
+
 </script>
+
+<div id="modal-whatsapp" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="bg-white rounded-[2.5rem] w-full max-w-sm p-8 relative shadow-2xl animate-bounce-in">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-olive/10 text-olive rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fab fa-whatsapp text-3xl"></i>
+            </div>
+            <h3 class="font-black text-gray-800 uppercase tracking-widest text-lg">Enviar Recibo</h3>
+            <p class="text-gray-400 text-[10px] font-bold uppercase mt-1">Ingresa el número de WhatsApp</p>
+        </div>
+        
+        <input type="number" id="input-telefono-ws" value="502"
+            class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl text-center font-black text-lg focus:border-olive focus:outline-none transition-all mb-4"
+            placeholder="502XXXXXXXX">
+
+        <div class="flex gap-3">
+            <button onclick="cerrarModalWS()" 
+                class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition">
+                Omitir
+            </button>
+            <button id="btn-confirmar-ws" 
+                class="flex-1 bg-olive text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-olive/20 hover:scale-105 transition">
+                Enviar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-preguntar-ws" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="bg-white rounded-[2.5rem] w-full max-w-sm p-8 relative shadow-2xl scale-in">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-olive/10 text-olive rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fab fa-whatsapp text-3xl"></i>
+            </div>
+            <h3 class="font-black text-gray-800 uppercase tracking-widest text-lg">¿Enviar Recibo?</h3>
+            <p class="text-gray-400 text-[10px] font-bold uppercase mt-1">Selecciona una opción</p>
+        </div>
+        
+        <div class="flex flex-col gap-3">
+            <button onclick="confirmarEnvioWS(true)" 
+                class="w-full py-4 bg-olive text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-olive/90 transition shadow-lg shadow-olive/20">
+                SÍ, ENVIAR POR WHATSAPP
+            </button>
+            <button onclick="confirmarEnvioWS(false)" 
+                class="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition">
+                NO, SOLO FINALIZAR
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
