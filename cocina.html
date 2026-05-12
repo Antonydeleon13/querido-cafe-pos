@@ -3,147 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * data: blob:; style-src * 'unsafe-inline';">
-    <title>Admin - Querido Café</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * https://*.googleapis.com; img-src * data: blob: https://firebasestorage.googleapis.com; style-src * 'unsafe-inline';">
+    <title>Cocina - Querido Café</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .olive-theme { color: #556b2f; }
         .bg-olive { background-color: #556b2f; }
+        @keyframes pulse-new {
+            0% { transform: scale(1); border-color: #556b2f; }
+            50% { transform: scale(1.02); border-color: #ff9a16; }
+            100% { transform: scale(1); border-color: #556b2f; }
+        }
+        .new-order { animation: pulse-new 2s infinite; border-width: 3px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #556b2f33; border-radius: 10px; }
         
+        /* Estilos para Toasts */
         @keyframes bounce-in {
             0% { transform: scale(0.5); opacity: 0; }
             70% { transform: scale(1.05); opacity: 1; }
             100% { transform: scale(1); }
         }
         .animate-bounce-in { animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #556b2f33; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-50 p-4 md:p-10 font-sans min-h-screen pb-24">
+<body class="bg-gray-100 h-screen flex flex-col font-sans overflow-hidden">
 
-    <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] space-y-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] space-y-3 pointer-events-none"></div>
 
-    <div id="modal-form" class="fixed inset-0 bg-black/60 z-[120] hidden flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-6 md:p-10 shadow-2xl animate-bounce-in max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-xl font-black text-gray-800 uppercase tracking-tighter">Nuevo Producto</h3>
-                    <p class="text-[9px] text-gray-400 font-black tracking-widest uppercase mt-0.5">Detalles del artículo</p>
-                </div>
-                <button onclick="window.toggleForm()" class="text-gray-300 hover:text-gray-500 text-3xl transition">&times;</button>
-            </div>
+   <header class="bg-white border-b-4 border-olive p-6 flex flex-col items-center shadow-md relative">
+    <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-100 p-4 rounded-2xl text-gray-400 hover:text-olive transition shadow-sm group flex flex-col items-center justify-center min-w-[64px]">
+        <i class="fas fa-arrow-left text-xl"></i>
+        <span class="text-[8px] font-black uppercase mt-1 hidden md:block">Regresar</span>
+    </a>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-black text-gray-400 uppercase ml-2 tracking-widest">Nombre</label>
-                    <input id="n" type="text" placeholder="Ej. Latte" class="w-full bg-gray-50 p-4 rounded-xl outline-none border border-transparent focus:border-olive transition-all font-bold text-sm text-gray-700">
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-[9px] font-black text-gray-400 uppercase ml-2 tracking-widest">Precio (Q)</label>
-                    <input id="p" type="number" placeholder="0.00" class="w-full bg-gray-50 p-4 rounded-xl outline-none border border-transparent focus:border-olive transition-all font-bold text-sm text-gray-700">
-                </div>
-                
-                <div class="flex flex-col gap-1">
-                    <label class="text-[9px] font-black text-gray-400 uppercase ml-2 tracking-widest">Categoría</label>
-                    <select id="cat-select" class="bg-gray-50 p-4 rounded-xl outline-none border border-transparent focus:border-olive text-xs font-bold appearance-none text-gray-600">
-                        <option value="">-- Seleccionar --</option>
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-[9px] font-black text-gray-400 uppercase ml-2 tracking-widest">O Nueva</label>
-                    <input id="cat-new" type="text" placeholder="Nueva..." class="bg-gray-50 p-4 rounded-xl outline-none border border-transparent focus:border-olive font-bold text-sm text-gray-700">
-                </div>
-                
-                <div onclick="document.getElementById('temp').click()" class="flex items-center gap-3 bg-orange-50 p-4 rounded-xl md:col-span-2 cursor-pointer border border-orange-100">
-                    <input id="temp" type="checkbox" class="w-5 h-5 accent-orange-500 rounded-md">
-                    <label class="text-[11px] font-black text-orange-600 uppercase tracking-tighter italic">¿Es producto de Temporada? 🔥</label>
-                </div>
-
-                <div class="md:col-span-2 space-y-2">
-                    <label class="block text-[9px] font-black text-gray-400 ml-2 uppercase tracking-widest">Foto del producto</label>
-                    <div class="relative group">
-                        <input id="f" type="file" accept="image/*" class="hidden" onchange="window.updateFileName(this)">
-                        <label for="f" id="file-box" class="flex items-center justify-between bg-gray-50 border-2 border-dashed border-gray-200 p-4 rounded-xl cursor-pointer group-hover:border-olive group-hover:bg-olive/5 transition-all duration-300">
-                            <div class="flex items-center gap-3">
-                                <div id="file-icon-bg" class="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center text-gray-400 group-hover:text-olive transition-colors">
-                                    <i class="fas fa-image text-lg"></i>
-                                </div>
-                                <div>
-                                    <p id="file-name" class="text-[11px] font-black text-gray-700 uppercase tracking-tight">Seleccionar imagen</p>
-                                    <p id="file-sub" class="text-[8px] text-gray-400 font-bold uppercase">JPG, PNG o WebP</p>
-                                </div>
-                            </div>
-                            <div class="bg-olive text-white px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg shadow-olive/20 group-hover:scale-105 transition-transform">
-                                Buscar
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <button id="add" class="md:col-span-2 bg-olive text-white font-black p-5 rounded-2xl hover:brightness-110 transition shadow-xl shadow-olive/20 uppercase tracking-[0.2em] text-[10px] mt-4">
-                    Guardar en Catálogo
-                </button>
-            </div>
-            
-            <div id="status" class="hidden mt-6 text-center text-[10px] font-black text-orange-400 animate-pulse uppercase tracking-[0.3em]">
-                <i class="fas fa-cloud-upload-alt mr-2 text-sm"></i>Sincronizando...
-            </div>
-        </div>
+    <img src="logo.png" alt="Logo Querido Café" class="h-24 md:h-32 w-auto object-contain mb-2">
+    <div class="text-center">
+        <h1 class="text-2xl font-black olive-theme tracking-widest uppercase">Monitor de Cocina</h1>
+        <p id="order-count" class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Esperando órdenes...</p>
     </div>
+</header>
 
-    <div id="modal-delete" class="fixed inset-0 bg-black/50 z-[130] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center animate-bounce-in border border-gray-100">
-            <div class="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-trash-alt text-3xl text-red-400"></i>
-            </div>
-            <h3 class="text-xl font-black text-gray-800 uppercase mb-2 leading-none">¿Borrar?</h3>
-            <p class="text-gray-400 text-[10px] mb-8 font-bold uppercase tracking-[0.2em] leading-tight">Esta acción es permanente</p>
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="window.cerrarBorrar()" class="bg-gray-50 text-gray-400 font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest hover:bg-gray-100 transition">No</button>
-                <button id="btn-delete-final" class="bg-red-500 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-lg shadow-red-200 hover:brightness-110 transition">Sí, Borrar</button>
+    <main class="flex-1 p-6 overflow-x-auto">
+        <div id="pedidos-container" class="flex gap-6 h-full items-start">
+            <div class="text-center w-full mt-20 text-gray-300">
+                <i class="fas fa-receipt text-6xl mb-4 animate-bounce"></i>
+                <p class="text-xl font-bold italic">No hay pedidos pendientes por ahora</p>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="max-w-5xl mx-auto">
-        <div class="flex flex-col items-center mb-12">
-            <img src="logo.png" alt="Logo Querido Café" class="h-40 md:h-52 w-auto object-contain">
-            <div class="text-center mt-4">
-                <h1 class="text-3xl font-black text-gray-800 uppercase tracking-tighter leading-none">Inventario</h1>
-                <p class="text-[10px] text-gray-400 font-black tracking-[0.4em] uppercase mt-2">Panel de Administración</p>
-            </div>
-        </div>
-
-        <div class="flex flex-wrap justify-center gap-4 mb-12">
-            <button onclick="window.toggleForm()" class="hidden md:flex bg-olive text-white px-8 py-5 rounded-[1.5rem] shadow-xl shadow-olive/20 text-xs font-black uppercase tracking-widest hover:brightness-110 transition items-center gap-3">
-                <i class="fas fa-plus-circle text-lg"></i> Agregar Artículo
-            </button>
-          
-            <a href="historial.html" class="bg-white px-8 py-5 rounded-[1.5rem] shadow-sm text-xs font-black uppercase tracking-widest text-gray-400 hover:text-olive transition border border-gray-100 flex items-center gap-3">
-                <i class="fas fa-chart-line text-lg"></i> Historial
-            </a>
-        </div>
-
-        <div id="inv-container" class="space-y-10">
-            <div class="text-center py-20 text-gray-300 font-black uppercase tracking-widest text-xs animate-pulse">
-                Cargando artículos...
-            </div>
-        </div>
-    </div>
-
-    <button onclick="window.toggleForm()" class="fixed bottom-6 right-6 w-16 h-16 bg-olive text-white rounded-full shadow-2xl z-50 md:hidden flex items-center justify-center text-2xl animate-bounce">
-        <i class="fas fa-plus"></i>
-    </button>
+    <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAFQf7qAKNVASklSu7uVAhlYPSAfU68jz4",
@@ -156,17 +71,18 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
+        let lastCount = 0;
 
-        let idParaBorrar = null;
-
-        // --- SISTEMA DE TOASTS ---
+        // Sistema de Toasts
         window.showToast = (mensaje, tipo = 'success') => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             const color = tipo === 'success' ? 'bg-olive' : 'bg-orange-500';
-            toast.className = `${color} text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-auto`;
-            toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> <span class="text-[10px] font-black uppercase tracking-widest">${mensaje}</span>`;
+            const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            toast.className = `${color} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-auto`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span class="text-xs font-black uppercase tracking-widest">${mensaje}</span>`;
+            
             container.appendChild(toast);
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-500');
@@ -174,124 +90,110 @@
             }, 3000);
         };
 
-        // --- CONTROL DE MODALES ---
-        window.toggleForm = () => document.getElementById('modal-form').classList.toggle('hidden');
-        window.abrirBorrar = (id) => { idParaBorrar = id; document.getElementById('modal-delete').classList.remove('hidden'); };
-        window.cerrarBorrar = () => document.getElementById('modal-delete').classList.add('hidden');
+        const q = query(
+            collection(db, "ordenes"), 
+            where("estado", "==", "pendiente"),
+            orderBy("fecha", "asc")
+        );
 
-        // --- FUNCIÓN PARA EL NOMBRE DEL ARCHIVO (AHORA GLOBAL) ---
-        window.updateFileName = (input) => {
-            const fileNameDisplay = document.getElementById('file-name');
-            const fileBox = document.getElementById('file-box');
-            const iconBg = document.getElementById('file-icon-bg');
-            const subText = document.getElementById('file-sub');
-
-            if (input.files && input.files.length > 0) {
-                const name = input.files[0].name;
-                fileNameDisplay.innerText = name.length > 25 ? name.substring(0, 22) + "..." : name;
-                
-                fileNameDisplay.classList.replace('text-gray-700', 'olive-theme');
-                fileBox.classList.replace('border-gray-200', 'border-olive');
-                fileBox.classList.add('bg-olive/5');
-                iconBg.classList.replace('text-gray-400', 'olive-theme');
-                subText.innerText = "¡Imagen lista!";
-                subText.classList.replace('text-gray-400', 'olive-theme');
-            } else {
-                fileNameDisplay.innerText = "Seleccionar imagen";
-                fileNameDisplay.classList.replace('olive-theme', 'text-gray-700');
-                fileBox.classList.replace('border-olive', 'border-gray-200');
-                fileBox.classList.remove('bg-olive/5');
-                iconBg.classList.replace('olive-theme', 'text-gray-400');
-                subText.innerText = "JPG, PNG o WebP";
-            }
-        };
-
-        // --- CARGAR CATEGORÍAS ---
-        onSnapshot(collection(db, "productos"), (snap) => {
-            const select = document.getElementById('cat-select');
-            const categories = new Set();
-            snap.forEach(d => { if(d.data().categoria) categories.add(d.data().categoria); });
-            select.innerHTML = '<option value="">-- Seleccionar --</option>';
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat; opt.textContent = cat;
-                select.appendChild(opt);
-            });
-        });
-
-        // --- GUARDAR ---
-        document.getElementById('add').onclick = async () => {
-            const n = document.getElementById('n'), p = document.getElementById('p'), catS = document.getElementById('cat-select'), catN = document.getElementById('cat-new'), temp = document.getElementById('temp'), file = document.getElementById('f').files[0], status = document.getElementById('status');
-            
-            if(!n.value || !p.value || !file) return showToast("Nombre, Precio y Foto obligatorios", "error");
-            
-            const categoria = catN.value || catS.value || "General";
-            status.classList.remove('hidden');
-
-            try {
-                const storageRef = ref(storage, 'productos/' + Date.now() + "_" + file.name);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                await addDoc(collection(db, "productos"), { nombre: n.value, precio: parseFloat(p.value), url, categoria, temporada: temp.checked, fecha: new Date() });
-                
-                showToast("¡Producto Guardado!");
-                window.toggleForm();
-                n.value = ''; p.value = ''; catN.value = ''; temp.checked = false; document.getElementById('f').value = '';
-                // Reset visual del file box
-                window.updateFileName({files: []});
-            } catch (e) { showToast("Error al guardar", "error"); } finally { status.classList.add('hidden'); }
-        };
-
-        // --- ELIMINAR ---
-        document.getElementById('btn-delete-final').onclick = async () => {
-            if(idParaBorrar) {
-                try {
-                    await deleteDoc(doc(db, "productos", idParaBorrar));
-                    showToast("Producto eliminado");
-                    window.cerrarBorrar();
-                } catch(e) { showToast("Error al borrar", "error"); }
-            }
-        };
-
-        // --- LISTADO AGRUPADO ---
-        onSnapshot(query(collection(db, "productos"), orderBy("categoria")), (snap) => {
-            const container = document.getElementById('inv-container');
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('pedidos-container');
+            const countEl = document.getElementById('order-count');
             container.innerHTML = '';
             
-            const grouped = {};
-            snap.forEach(d => {
-                const p = d.data();
-                const cat = p.categoria || "General";
-                if(!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push({ id: d.id, ...p });
-            });
+            countEl.innerText = `${snapshot.size} PEDIDOS PENDIENTES`;
 
-            for (const cat in grouped) {
-                const section = document.createElement('div');
-                section.innerHTML = `
-                    <h2 class="text-xs font-black olive-theme tracking-[0.4em] uppercase mb-6 flex items-center gap-4">
-                        ${cat} <span class="h-[1px] flex-1 bg-gray-200"></span>
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${grouped[cat].map(item => `
-                            <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
-                                <div class="flex items-center gap-4">
-                                    <img src="${item.url}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 border border-gray-100">
-                                    <div>
-                                        <p class="font-black text-gray-700 text-sm uppercase tracking-tighter">${item.nombre} ${item.temporada ? '🔥' : ''}</p>
-                                        <p class="text-[11px] font-black olive-theme italic">Q${item.precio.toFixed(2)}</p>
-                                    </div>
-                                </div>
-                                <button onclick="window.abrirBorrar('${item.id}')" class="w-10 h-10 rounded-xl text-red-200 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+            if (snapshot.size > lastCount) {
+                document.getElementById('notif-sound').play().catch(e => console.log("Audio bloqueado"));
+                window.showToast("¡Nueva orden recibida!");
+            }
+            lastCount = snapshot.size;
+
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="text-center w-full mt-20 text-gray-300">
+                        <i class="fas fa-coffee text-6xl mb-4"></i>
+                        <p class="text-xl font-bold italic">Todo listo en cocina</p>
+                    </div>`;
+                return;
+            }
+
+            snapshot.forEach((pedidoDoc) => {
+                const pedido = pedidoDoc.data();
+                const id = pedidoDoc.id;
+                const tiempoCrea = pedido.fecha?.toDate() || new Date();
+                const minutos = Math.floor((new Date() - tiempoCrea) / 60000);
+
+                const card = document.createElement('div');
+                card.className = `min-w-[320px] max-w-[320px] bg-white rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border-2 border-gray-100 ${minutos > 10 ? 'new-order' : ''}`;
+                
+                // --- LÓGICA DE AGRUPACIÓN ---
+                const itemsAgrupados = {};
+                pedido.items.forEach(item => {
+                    const cant = item.cantidad || 1; // Si no tiene cantidad, asumimos 1
+                    if (itemsAgrupados[item.name]) {
+                        itemsAgrupados[item.name].cantidad += cant;
+                    } else {
+                        itemsAgrupados[item.name] = { ...item, cantidad: cant };
+                    }
+                });
+
+                // --- GENERAR HTML AGRUPADO ---
+                let itemsHTML = '';
+                Object.values(itemsAgrupados).forEach(item => {
+                    itemsHTML += `
+                        <div class="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
+                            <div class="relative">
+                                <img src="${item.img}" class="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-50" onerror="this.src='https://via.placeholder.com/100?text=Café'">
+                                <span class="absolute -top-2 -right-2 bg-olive text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                                    ${item.cantidad}
+                                </span>
                             </div>
-                        `).join('')}
+                            <p class="font-black text-gray-700 text-sm uppercase leading-tight flex-1">
+                                ${item.name}
+                            </p>
+                        </div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="p-6 ${minutos > 10 ? 'bg-orange-500' : 'bg-olive'} text-white shadow-lg">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[10px] font-black uppercase opacity-80 tracking-widest mb-1">Cliente / Mesa</p>
+                                <h3 class="text-2xl font-black leading-none uppercase tracking-tighter">${pedido.cliente}</h3>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md px-3 py-2 rounded-2xl text-center">
+                                <p class="text-[9px] font-black uppercase leading-none mb-1">Tiempo</p>
+                                <span class="text-sm font-black">${minutos}m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-6 overflow-y-auto bg-white custom-scrollbar">
+                        ${itemsHTML}
+                    </div>
+                    <div class="p-6 bg-gray-50 mt-auto border-t border-gray-100">
+                        <button onclick="window.completarOrden('${id}')" class="w-full bg-olive text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-olive/20 hover:brightness-110 active:scale-95 transition-all uppercase tracking-[0.2em] text-xs">
+                            <i class="fas fa-check-circle mr-2 text-lg"></i> Despachar
+                        </button>
                     </div>
                 `;
-                container.appendChild(section);
-            }
+                container.appendChild(card);
+            });
         });
+
+        // Cambia "completado" por "listo-para-cobrar"
+window.completarOrden = async (id) => {
+    try {
+        const ordenRef = doc(db, "ordenes", id);
+        await updateDoc(ordenRef, {
+            estado: "listo-para-cobrar", // Este es el estado que el POS reconoce
+            fechaListo: new Date()
+        });
+        // Opcional: puedes agregar un toast o mensaje de éxito aquí
+    } catch (e) {
+        alert("Error al actualizar");
+    }
+};
     </script>
 </body>
 </html>
